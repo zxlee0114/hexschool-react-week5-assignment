@@ -78,6 +78,29 @@ function App() {
     }
   };
 
+  const removeCartItem = async (id) => {
+    try {
+      await axios.delete(`${BASE_URL}/v2/api/${API_PATH}/cart/${id}`);
+      getCart();
+    } catch (error) {
+      alert("刪除此商品失敗");
+    }
+  };
+
+  const updateCartItemNum = async (cartItem_id, product_id, qty) => {
+    try {
+      await axios.put(`${BASE_URL}/v2/api/${API_PATH}/cart/${cartItem_id}`, {
+        data: {
+          product_id,
+          qty: Number(qty),
+        },
+      });
+      getCart();
+    } catch (error) {
+      alert("更新商品數量失敗");
+    }
+  };
+
   return (
     <div className="container">
       <div className="mt-4">
@@ -222,6 +245,9 @@ function App() {
                     <tr key={cartItem.id}>
                       <td>
                         <button
+                          onClick={() => {
+                            removeCartItem(cartItem.id);
+                          }}
                           type="button"
                           className="btn btn-outline-danger btn-sm"
                         >
@@ -233,6 +259,14 @@ function App() {
                         <div className="d-flex align-items-center">
                           <div className="btn-group me-2" role="group">
                             <button
+                              onClick={() => {
+                                updateCartItemNum(
+                                  cartItem.id,
+                                  cartItem.product_id,
+                                  cartItem.qty - 1
+                                );
+                              }}
+                              disabled={cartItem.qty === 1}
                               type="button"
                               className="btn btn-outline-dark btn-sm"
                             >
@@ -245,6 +279,13 @@ function App() {
                               {cartItem.qty}
                             </span>
                             <button
+                              onClick={() => {
+                                updateCartItemNum(
+                                  cartItem.id,
+                                  cartItem.product_id,
+                                  cartItem.qty + 1
+                                );
+                              }}
                               type="button"
                               className="btn btn-outline-dark btn-sm"
                             >
