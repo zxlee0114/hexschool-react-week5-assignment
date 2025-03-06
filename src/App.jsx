@@ -26,7 +26,6 @@ function App() {
       setIsScreenLoading(false);
     }
   };
-
   useEffect(() => {
     const getProducts = async () => {
       try {
