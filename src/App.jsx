@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { Modal } from "bootstrap";
 import { useForm } from "react-hook-form";
+import ClipLoader from "react-spinners/ClipLoader";
+import BeatLoader from "react-spinners/ClipLoader";
 
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 const API_PATH = import.meta.env.VITE_API_PATH;
@@ -9,15 +11,19 @@ const API_PATH = import.meta.env.VITE_API_PATH;
 function App() {
   const [products, setProducts] = useState([]);
   const [tempProduct, setTempProduct] = useState([]);
-
   const [cart, setCart] = useState({});
+  const [isScreenLoading, setIsScreenLoading] = useState(false);
+  const [isBtnLoading, setIsBtnLoading] = useState(false);
 
   const getCart = async () => {
     try {
+      setIsScreenLoading(true);
       const response = await axios.get(`${BASE_URL}/v2/api/${API_PATH}/cart`);
       setCart(response.data.data);
     } catch (error) {
       alert("取得購物車列表失敗");
+    } finally {
+      setIsScreenLoading(false);
     }
   };
 
@@ -58,6 +64,8 @@ function App() {
 
   const addCartItem = async (product_id, qty) => {
     try {
+      setIsBtnLoading(true);
+      setIsScreenLoading(true);
       await axios.post(`${BASE_URL}/v2/api/${API_PATH}/cart`, {
         data: {
           product_id,
@@ -67,29 +75,39 @@ function App() {
       getCart();
     } catch (error) {
       alert("加入購物車失敗");
+    } finally {
+      setIsBtnLoading(false);
+      setIsScreenLoading(false);
     }
   };
 
   const removeCart = async () => {
     try {
+      setIsScreenLoading(true);
       await axios.delete(`${BASE_URL}/v2/api/${API_PATH}/carts`);
       getCart();
     } catch (error) {
       alert("刪除購物車失敗");
+    } finally {
+      setIsScreenLoading(false);
     }
   };
 
   const removeCartItem = async (id) => {
     try {
+      setIsScreenLoading(true);
       await axios.delete(`${BASE_URL}/v2/api/${API_PATH}/cart/${id}`);
       getCart();
     } catch (error) {
       alert("刪除此商品失敗");
+    } finally {
+      setIsScreenLoading(false);
     }
   };
 
   const updateCartItemNum = async (cartItem_id, product_id, qty) => {
     try {
+      setIsScreenLoading(true);
       await axios.put(`${BASE_URL}/v2/api/${API_PATH}/cart/${cartItem_id}`, {
         data: {
           product_id,
@@ -99,6 +117,8 @@ function App() {
       getCart();
     } catch (error) {
       alert("更新商品數量失敗");
+    } finally {
+      setIsScreenLoading(false);
     }
   };
 
@@ -110,7 +130,6 @@ function App() {
   } = useForm();
 
   const onSubmit = handleSubmit((data) => {
-    console.log(data);
     const { message, ...user } = data; // 其餘運算子
     const userInfo = {
       data: {
@@ -123,9 +142,12 @@ function App() {
 
   const handleCheckout = async (order) => {
     try {
+      setIsScreenLoading(true);
       await axios.post(`${BASE_URL}/v2/api/${API_PATH}/order`, order);
     } catch (error) {
       alert("結帳失敗");
+    } finally {
+      setIsScreenLoading(false);
     }
     reset();
     getCart();
@@ -173,8 +195,16 @@ function App() {
                       }}
                       type="button"
                       className="btn btn-outline-danger"
+                      style={{
+                        cursor: isBtnLoading ? "not-allowed" : "pointer",
+                        opacity: isBtnLoading ? 0.7 : 1,
+                        transition: "all 0.3s",
+                      }}
                     >
-                      加到購物車
+                      加到購物車{" "}
+                      {isBtnLoading && (
+                        <BeatLoader size={8} color="#ffffff" margin={2} />
+                      )}
                     </button>
                   </div>
                 </td>
@@ -239,8 +269,16 @@ function App() {
                   }}
                   type="button"
                   className="btn btn-primary"
+                  style={{
+                    cursor: isBtnLoading ? "not-allowed" : "pointer",
+                    opacity: isBtnLoading ? 0.7 : 1,
+                    transition: "all 0.3s",
+                  }}
                 >
                   加入購物車
+                  {isBtnLoading && (
+                    <BeatLoader size={8} color="#ffffff" margin={2} />
+                  )}
                 </button>
               </div>
             </div>
@@ -296,7 +334,7 @@ function App() {
                                   cartItem.qty - 1
                                 );
                               }}
-                              disabled={cartItem.qty === 1}
+                              disabled={cartItem.qty === 1 || isScreenLoading}
                               type="button"
                               className="btn btn-outline-dark btn-sm"
                             >
@@ -316,6 +354,7 @@ function App() {
                                   cartItem.qty + 1
                                 );
                               }}
+                              disabled={isScreenLoading}
                               type="button"
                               className="btn btn-outline-dark btn-sm"
                             >
@@ -450,6 +489,24 @@ function App() {
           </div>
         </form>
       </div>
+
+      {/* loading */}
+      {isScreenLoading && (
+        <div
+          className="loading-container"
+          style={{
+            position: "fixed",
+            inset: 0,
+            backgroundColor: "rgba(255,255,255,0.3)",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            zIndex: 9999,
+          }}
+        >
+          <ClipLoader color="#36D7B7" loading={true} size={50} />
+        </div>
+      )}
     </div>
   );
 }
