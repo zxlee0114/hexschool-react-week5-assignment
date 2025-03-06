@@ -106,11 +106,30 @@ function App() {
     register,
     handleSubmit,
     formState: { errors },
+    reset,
   } = useForm();
 
   const onSubmit = handleSubmit((data) => {
     console.log(data);
+    const { message, ...user } = data; // 其餘運算子
+    const userInfo = {
+      data: {
+        user,
+        message,
+      },
+    };
+    handleCheckout(userInfo);
   });
+
+  const handleCheckout = async (order) => {
+    try {
+      await axios.post(`${BASE_URL}/v2/api/${API_PATH}/order`, order);
+    } catch (error) {
+      alert("結帳失敗");
+    }
+    reset();
+    getCart();
+  };
 
   return (
     <div className="container">
@@ -375,7 +394,7 @@ function App() {
               收件人電話
             </label>
             <input
-              {...register("phone", {
+              {...register("tel", {
                 required: "此為必填欄位，請輸入有效的電話號碼",
                 pattern: {
                   value: /^(0[2-8]\d{7}|09\d{8})$/,
@@ -384,12 +403,12 @@ function App() {
               })}
               id="tel"
               type="text"
-              className={`form-control ${errors.phone && "is-invalid"}`}
+              className={`form-control ${errors.tel && "is-invalid"}`}
               placeholder="請輸入電話"
             />
 
-            {errors.phone && (
-              <p className="text-danger my-2">{errors.phone.message}</p>
+            {errors.tel && (
+              <p className="text-danger my-2">{errors.tel.message}</p>
             )}
           </div>
 
